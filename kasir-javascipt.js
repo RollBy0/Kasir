@@ -104,7 +104,7 @@
     });
   });
 
-  // Pasang validasi ke form. Fungsi "periksa" mengembalikan null (lolos) atau {el, teks} (gagal).
+  // validasi ke form. Fungsi "periksa" mengembalikan null (lolos) atau {el, teks} (gagal).
   function validasi(selectorForm, periksa) {
     $(document).on('submit', selectorForm, function (e) {
       const $f = $(this);
