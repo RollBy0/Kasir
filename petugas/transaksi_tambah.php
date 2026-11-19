@@ -164,7 +164,7 @@ include "header.php";
                           <?php
                           $dt_produk = mysqli_query($koneksi,"SELECT * FROM tb_produk");
                           while ($produk = mysqli_fetch_array($dt_produk)) { ?>
-                          <option value="<?php echo $produk['ProdukID']; ?>"><?php echo 
+                          <option value="<?php echo $produk['ProdukID']; ?>" data-harga="<?php echo $produk['Harga']; ?>" data-stok="<?php echo $produk['Stok']; ?>"><?php echo 
                           $produk['NamaProduk']. "(" . $produk['Stok'] . ")"; ?></option>
                           <?php
                           }

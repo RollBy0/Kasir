@@ -31,6 +31,7 @@
 <script src="../assets/dist/js/pages/dashboard2.js"></script>
 <!-- AdminLTE for demo purposes -->
 <script src="../assets/dist/js/demo.js"></script>
+<script src="../assets/js/kasir.js"></script>
 </body>
 
 </html>
