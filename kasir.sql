@@ -1,21 +1,6 @@
--- phpMyAdmin SQL Dump
--- version 5.2.0
--- https://www.phpmyadmin.net/
---
--- Host: 127.0.0.1
--- Waktu pembuatan: 16 Bulan Mei 2024 pada 17.28
--- Versi server: 10.4.25-MariaDB
--- Versi PHP: 8.1.10
-
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
-
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
 
 --
 -- Database: `kasir`
@@ -36,7 +21,7 @@ CREATE TABLE `tb_detail_penjualan` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Dumping data untuk tabel `tb_detail_penjualan`
+-- data untuk tabel `tb_detail_penjualan`
 --
 
 INSERT INTO `tb_detail_penjualan` (`DetailID`, `PenjualanID`, `ProdukID`, `JumlahProduk`, `SubTotal`) VALUES
@@ -48,7 +33,7 @@ INSERT INTO `tb_detail_penjualan` (`DetailID`, `PenjualanID`, `ProdukID`, `Jumla
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `tb_pelanggan`
+-- Struktur tabel `tb_pelanggan`
 --
 
 CREATE TABLE `tb_pelanggan` (
@@ -59,7 +44,7 @@ CREATE TABLE `tb_pelanggan` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Dumping data untuk tabel `tb_pelanggan`
+-- data untuk tabel `tb_pelanggan`
 --
 
 INSERT INTO `tb_pelanggan` (`PelangganID`, `NamaPelanggan`, `Alamat`, `NomorTelepon`) VALUES
@@ -69,7 +54,7 @@ INSERT INTO `tb_pelanggan` (`PelangganID`, `NamaPelanggan`, `Alamat`, `NomorTele
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `tb_penjualan`
+-- Struktur  tabel `tb_penjualan`
 --
 
 CREATE TABLE `tb_penjualan` (
@@ -81,7 +66,7 @@ CREATE TABLE `tb_penjualan` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Dumping data untuk tabel `tb_penjualan`
+-- data untuk tabel `tb_penjualan`
 --
 
 INSERT INTO `tb_penjualan` (`PenjualanID`, `TanggalPenjualan`, `TotalHarga`, `PelangganID`, `UserID`) VALUES
@@ -91,7 +76,7 @@ INSERT INTO `tb_penjualan` (`PenjualanID`, `TanggalPenjualan`, `TotalHarga`, `Pe
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `tb_produk`
+-- Struktur tabel `tb_produk`
 --
 
 CREATE TABLE `tb_produk` (
@@ -102,7 +87,7 @@ CREATE TABLE `tb_produk` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Dumping data untuk tabel `tb_produk`
+-- data untuk tabel `tb_produk`
 --
 
 INSERT INTO `tb_produk` (`ProdukID`, `NamaProduk`, `Harga`, `Stok`) VALUES
@@ -112,7 +97,7 @@ INSERT INTO `tb_produk` (`ProdukID`, `NamaProduk`, `Harga`, `Stok`) VALUES
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `tb_user`
+-- Struktur tabel `tb_user`
 --
 
 CREATE TABLE `tb_user` (
@@ -124,7 +109,7 @@ CREATE TABLE `tb_user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Dumping data untuk tabel `tb_user`
+-- data untuk tabel `tb_user`
 --
 
 INSERT INTO `tb_user` (`UserID`, `NamaUser`, `username`, `password`, `role`) VALUES
@@ -132,36 +117,37 @@ INSERT INTO `tb_user` (`UserID`, `NamaUser`, `username`, `password`, `role`) VAL
 (3, 'petugas1', 'petugas1', 'b53fe7751b37e40ff34d012c7774d65f', 'Petugas');
 
 --
--- Indexes for dumped tables
+-- Indeks tabel `tb_detail_penjualan`
 --
 
---
--- Indeks untuk tabel `tb_detail_penjualan`
---
 ALTER TABLE `tb_detail_penjualan`
   ADD PRIMARY KEY (`DetailID`);
 
 --
--- Indeks untuk tabel `tb_pelanggan`
+-- Indeks tabel `tb_pelanggan`
 --
+
 ALTER TABLE `tb_pelanggan`
   ADD PRIMARY KEY (`PelangganID`);
 
 --
--- Indeks untuk tabel `tb_penjualan`
+-- Indeks tabel `tb_penjualan`
 --
+
 ALTER TABLE `tb_penjualan`
   ADD PRIMARY KEY (`PenjualanID`);
 
 --
--- Indeks untuk tabel `tb_produk`
+-- Indeks tabel `tb_produk`
 --
+
 ALTER TABLE `tb_produk`
   ADD PRIMARY KEY (`ProdukID`);
 
 --
--- Indeks untuk tabel `tb_user`
+-- Indeks tabel `tb_user`
 --
+
 ALTER TABLE `tb_user`
   ADD PRIMARY KEY (`UserID`);
 
@@ -170,25 +156,25 @@ ALTER TABLE `tb_user`
 --
 
 --
--- AUTO_INCREMENT untuk tabel `tb_detail_penjualan`
+-- AUTO_INCREMENT tabel `tb_detail_penjualan`
 --
 ALTER TABLE `tb_detail_penjualan`
   MODIFY `DetailID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
--- AUTO_INCREMENT untuk tabel `tb_pelanggan`
+-- AUTO_INCREMENT tabel `tb_pelanggan`
 --
 ALTER TABLE `tb_pelanggan`
   MODIFY `PelangganID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
--- AUTO_INCREMENT untuk tabel `tb_produk`
+-- AUTO_INCREMENT tabel `tb_produk`
 --
 ALTER TABLE `tb_produk`
   MODIFY `ProdukID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
--- AUTO_INCREMENT untuk tabel `tb_user`
+-- AUTO_INCREMENT tabel `tb_user`
 --
 ALTER TABLE `tb_user`
   MODIFY `UserID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
