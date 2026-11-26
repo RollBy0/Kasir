@@ -1,0 +1,5 @@
+<?php if (!empty($flash)): ?>
+<div class="toast<?= $flash['type'] === 'error' ? ' error' : '' ?>" role="status" data-toast="">
+  <?= icon($flash['type'] === 'error' ? 'alert' : 'shield', 16) ?> <?= e($flash['message']) ?>
+</div>
+<?php endif; ?>

@@ -1,0 +1,6 @@
+<div class="card denied">
+  <span><?= icon('lock', 26) ?></span>
+  <h2>Akses ditolak</h2>
+  <p>Role <?= e($user['role']) ?> tidak memiliki izin membuka modul <?= e(MODULES[$activeModule]['label'] ?? $activeModule) ?>.</p>
+  <a class="btn primary" href="dashboard.php">Kembali ke Dashboard</a>
+</div>

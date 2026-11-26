@@ -1,0 +1,225 @@
+<?php
+$role = $user['role'];
+$listUrl = url('transaksi.php', ['q' => $q, 'status' => $filter === 'Semua' ? '' : $filter]);
+$actions = $canCreate ? '<button type="button" class="btn primary" data-modal-open="pos-modal">' . icon('cart', 17) . ' Transaksi Baru</button>' : '';
+echo page_header('Transaksi', 'Data penjualan dari tb_penjualan beserta detail barangnya.', $actions);
+echo permission_bar(ACCESS[$role]['transaksi'], $role === 'Admin' ? 'Update khusus menyetujui void atau retur (status Cancelled).' : 'Create terbatas untuk mencatat penjualan dan mencetak struk.');
+?>
+
+<section class="card">
+  <div class="toolbar">
+    <?= search_form($q, 'Cari ID transaksi atau pelanggan...', ['status' => $filter === 'Semua' ? '' : $filter]) ?>
+    <div class="segmented">
+      <?php foreach (['Semua', 'Ongoing', 'Complete', 'Cancelled'] as $status): ?>
+        <a class="<?= $filter === $status ? 'selected' : '' ?>" href="<?= e(url('transaksi.php', ['q' => $q, 'status' => $status === 'Semua' ? '' : $status])) ?>"><?= $status ?> <span><?= $counts[$status] ?></span></a>
+      <?php endforeach; ?>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>ID Penjualan</th><th>Tanggal</th><th>Pelanggan</th><th>Kasir</th><th class="align-right">Total Harga</th><th>Status</th><th class="align-right">Aksi</th></tr>
+      </thead>
+      <tbody>
+        <?php foreach ($sales as $sale): ?>
+          <tr>
+            <td><strong><?= e($sale['PenjualanID']) ?></strong></td>
+            <td><?= e(tanggal($sale['TanggalPenjualan'])) ?></td>
+            <td><?= e(nama_pelanggan((int) $sale['PelangganID'], $sale['NamaPelanggan'])) ?></td>
+            <td><?= e($sale['NamaUser'] ?? 'User #' . $sale['UserID']) ?></td>
+            <td class="align-right"><strong><?= rupiah($sale['TotalHarga']) ?></strong></td>
+            <td><?= status_badge($sale['Status']) ?></td>
+            <td>
+              <div class="row-actions">
+                <a class="icon-action" href="<?= e(url('transaksi.php', ['q' => $q, 'status' => $filter === 'Semua' ? '' : $filter, 'detail' => $sale['PenjualanID']])) ?>" aria-label="Detail <?= e($sale['PenjualanID']) ?>"><?= icon('eye', 16) ?></a>
+                <?php if ($canCreate): ?>
+                  <?php if ($sale['Status'] === 'Cancelled'): ?>
+                    <button type="button" class="icon-action" disabled="disabled" aria-label="Cetak struk"><?= icon('print', 16) ?></button>
+                  <?php else: ?>
+                    <a class="icon-action" href="<?= e(url('transaksi.php', ['struk' => $sale['PenjualanID']])) ?>" aria-label="Cetak struk <?= e($sale['PenjualanID']) ?>"><?= icon('print', 16) ?></a>
+                  <?php endif; ?>
+                <?php endif; ?>
+              </div>
+            </td>
+          </tr>
+        <?php endforeach; ?>
+        <?php if (!$sales) echo empty_row(7); ?>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<?php if ($detailSale): ?>
+  <?php
+  $locked = $detailSale['Status'] === 'Cancelled';
+  $jumlahItem = array_sum(array_map(fn ($item) => (int) $item['JumlahProduk'], $detailSale['items']));
+  ?>
+  <div class="modal-layer" role="dialog" aria-modal="true" aria-labelledby="detail-title" data-close-href="<?= e($listUrl) ?>">
+    <a class="modal-backdrop" href="<?= e($listUrl) ?>" aria-label="Tutup"></a>
+    <form class="modal wide" method="post" action="transaksi.php">
+      <?= csrf_field() ?>
+      <input type="hidden" name="aksi" value="status" />
+      <input type="hidden" name="id" value="<?= e($detailSale['PenjualanID']) ?>" />
+      <div class="modal-head">
+        <div>
+          <h2 id="detail-title">Detail <?= e($detailSale['PenjualanID']) ?></h2>
+          <p><?= e(tanggal($detailSale['TanggalPenjualan'])) ?> · Kasir <?= e($detailSale['NamaUser'] ?? 'User #' . $detailSale['UserID']) ?></p>
+        </div>
+        <a class="icon-button" href="<?= e($listUrl) ?>" aria-label="Tutup"><?= icon('close', 18) ?></a>
+      </div>
+      <div class="modal-body">
+        <div class="info-grid">
+          <div><small>Pelanggan</small><strong><?= e(nama_pelanggan((int) $detailSale['PelangganID'], $detailSale['NamaPelanggan'])) ?></strong></div>
+          <div><small>Jumlah item</small><strong><?= $jumlahItem ?> barang</strong></div>
+          <div><small>Status</small><?= status_badge($detailSale['Status']) ?></div>
+        </div>
+        <div class="table-wrap bordered">
+          <table class="compact">
+            <thead><tr><th>Produk</th><th class="align-right">Harga</th><th class="align-right">Jumlah</th><th class="align-right">Subtotal</th></tr></thead>
+            <tbody>
+              <?php foreach ($detailSale['items'] as $item): ?>
+                <tr>
+                  <td><?= e($item['NamaProduk']) ?></td>
+                  <td class="align-right"><?= rupiah($item['SubTotal'] / max(1, (int) $item['JumlahProduk'])) ?></td>
+                  <td class="align-right"><?= (int) $item['JumlahProduk'] ?></td>
+                  <td class="align-right"><strong><?= rupiah($item['SubTotal']) ?></strong></td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+            <tfoot><tr><td colspan="3">Total Harga</td><td class="align-right"><?= rupiah($detailSale['TotalHarga']) ?></td></tr></tfoot>
+          </table>
+        </div>
+        <?php if ($canUpdate && !$locked): ?>
+          <p class="inline-warning is-hidden" id="void-warning"><?= icon('alert', 16) ?> Status Cancelled bersifat final. Stok setiap produk pada transaksi ini akan dikembalikan.</p>
+        <?php endif; ?>
+        <?php if ($locked): ?>
+          <p class="inline-note"><?= icon('lock', 15) ?> Transaksi telah dibatalkan dan tidak dapat diubah lagi.</p>
+        <?php endif; ?>
+      </div>
+      <?php if ($canUpdate): ?>
+        <div class="modal-foot">
+          <div class="status-editor">
+            <label>
+              <span>Ubah status</span>
+              <select name="status" id="status-select" data-current="<?= e($detailSale['Status']) ?>"<?= attr_if($locked, 'disabled') ?>>
+                <option value="Ongoing"<?= attr_if($detailSale['Status'] === 'Ongoing', 'selected') ?>>Ongoing</option>
+                <option value="Complete"<?= attr_if($detailSale['Status'] === 'Complete', 'selected') ?>>Complete</option>
+                <option value="Cancelled"<?= attr_if($detailSale['Status'] === 'Cancelled', 'selected') ?>>Cancelled (void / retur)</option>
+              </select>
+            </label>
+            <button type="submit" class="btn primary" id="status-submit" disabled="disabled">Simpan Status</button>
+          </div>
+        </div>
+      <?php elseif ($canCreate): ?>
+        <div class="modal-foot">
+          <?php if ($locked): ?>
+            <button type="button" class="btn primary" disabled="disabled"><?= icon('print', 17) ?> Cetak Struk</button>
+          <?php else: ?>
+            <a class="btn primary" href="<?= e(url('transaksi.php', ['struk' => $detailSale['PenjualanID']])) ?>"><?= icon('print', 17) ?> Cetak Struk</a>
+          <?php endif; ?>
+        </div>
+      <?php endif; ?>
+    </form>
+  </div>
+<?php endif; ?>
+
+<?php if ($receiptSale): ?>
+  <div class="modal-layer" role="dialog" aria-modal="true" aria-labelledby="struk-title" data-close-href="transaksi.php">
+    <a class="modal-backdrop" href="transaksi.php" aria-label="Tutup"></a>
+    <div class="modal">
+      <div class="modal-head">
+        <div><h2 id="struk-title">Struk Pembayaran</h2><p>Pratinjau struk sebelum dicetak.</p></div>
+        <a class="icon-button" href="transaksi.php" aria-label="Tutup"><?= icon('close', 18) ?></a>
+      </div>
+      <div class="modal-body">
+        <div class="receipt print-area">
+          <div class="receipt-head">
+            <strong><?= e(STORE_NAME) ?></strong>
+            <span>Minimarket</span>
+          </div>
+          <div class="receipt-meta">
+            <span>No</span><span><?= e($receiptSale['PenjualanID']) ?></span>
+            <span>Tanggal</span><span><?= e(tanggal($receiptSale['TanggalPenjualan'])) ?></span>
+            <span>Kasir</span><span><?= e($receiptSale['NamaUser'] ?? '-') ?></span>
+            <span>Pelanggan</span><span><?= e(nama_pelanggan((int) $receiptSale['PelangganID'], $receiptSale['NamaPelanggan'])) ?></span>
+          </div>
+          <div class="receipt-items">
+            <?php foreach ($receiptSale['items'] as $item): ?>
+              <div>
+                <span><?= e($item['NamaProduk']) ?></span>
+                <span class="receipt-line"><small><?= (int) $item['JumlahProduk'] ?> x <?= rupiah($item['SubTotal'] / max(1, (int) $item['JumlahProduk'])) ?></small><b><?= rupiah($item['SubTotal']) ?></b></span>
+              </div>
+            <?php endforeach; ?>
+          </div>
+          <div class="receipt-total"><span>TOTAL</span><strong><?= rupiah($receiptSale['TotalHarga']) ?></strong></div>
+          <p class="receipt-foot">Terima kasih telah berbelanja</p>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <a class="btn ghost" href="transaksi.php">Tutup</a>
+        <button type="button" class="btn primary" data-print=""><?= icon('print', 17) ?> Cetak</button>
+      </div>
+    </div>
+  </div>
+<?php endif; ?>
+
+<?php if ($canCreate): ?>
+  <!-- Modal transaksi baru (keranjang dikelola assets/js/app.js) -->
+  <div class="modal-layer<?= $posOpen ? '' : ' is-hidden' ?>" id="pos-modal" role="dialog" aria-modal="true" aria-labelledby="pos-title">
+    <button type="button" class="modal-backdrop" data-modal-close="" aria-label="Tutup"></button>
+    <form class="modal wide" method="post" action="transaksi.php" id="pos-form">
+      <?= csrf_field() ?>
+      <input type="hidden" name="aksi" value="simpan" />
+      <div class="modal-head">
+        <div><h2 id="pos-title">Transaksi Baru</h2><p>Catat penjualan, lalu cetak struk untuk pelanggan.</p></div>
+        <button type="button" class="icon-button" data-modal-close="" aria-label="Tutup"><?= icon('close', 18) ?></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="span-2">
+            <label class="field">
+              <span>Pelanggan</span>
+              <select name="pelanggan_id">
+                <option value="<?= UMUM_ID ?>">Pelanggan Umum (non-member)</option>
+                <?php foreach ($pelanggan as $member): ?>
+                  <option value="<?= (int) $member['PelangganID'] ?>"><?= e($member['NamaPelanggan']) ?> · <?= e($member['NomorTelepon']) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="pos-add">
+          <label class="field">
+            <span>Produk</span>
+            <select id="pos-product">
+              <?php foreach ($produk as $item): ?>
+                <option value="<?= (int) $item['ProdukID'] ?>" data-nama="<?= e($item['NamaProduk']) ?>" data-harga="<?= (float) $item['Harga'] ?>" data-stok="<?= (int) $item['Stok'] ?>"<?= attr_if((int) $item['Stok'] <= 0, 'disabled') ?>><?= e($item['NamaProduk']) ?> — <?= rupiah($item['Harga']) ?> (stok <?= (int) $item['Stok'] ?>)</option>
+              <?php endforeach; ?>
+            </select>
+          </label>
+          <label class="field">
+            <span>Jumlah</span>
+            <input type="number" id="pos-qty" min="1" value="1" />
+          </label>
+          <button type="button" class="btn secondary" id="pos-add"><?= icon('plus', 16) ?> Tambah</button>
+        </div>
+
+        <div class="table-wrap bordered">
+          <table class="compact">
+            <thead><tr><th>Produk</th><th class="align-right">Harga</th><th class="align-center">Jumlah</th><th class="align-right">Subtotal</th><th></th></tr></thead>
+            <tbody id="pos-lines">
+              <?= empty_row(5, 'Belum ada produk di keranjang.') ?>
+            </tbody>
+          </table>
+        </div>
+        <p class="form-error is-hidden" id="pos-error"></p>
+      </div>
+      <div class="modal-foot">
+        <div class="pos-total"><small>Total bayar</small><strong id="pos-total">Rp0</strong></div>
+        <button type="button" class="btn ghost" data-modal-close="">Batal</button>
+        <button type="submit" class="btn primary" id="pos-submit" disabled="disabled">Simpan &amp; Cetak Struk</button>
+      </div>
+    </form>
+  </div>
+<?php endif; ?>

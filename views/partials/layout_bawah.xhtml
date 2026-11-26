@@ -1,0 +1,30 @@
+    </div>
+  </main>
+</div>
+
+<?php require __DIR__ . '/toast.xhtml'; ?>
+
+<!-- Dialog konfirmasi hapus, diisi oleh app.js dari atribut data-confirm-* pada form -->
+<div class="modal-layer is-hidden" id="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+  <button type="button" class="modal-backdrop" data-modal-close="" aria-label="Tutup"></button>
+  <div class="modal">
+    <div class="modal-head">
+      <div><h2 id="confirm-title">Konfirmasi</h2></div>
+      <button type="button" class="icon-button" data-modal-close="" aria-label="Tutup"><?= icon('close', 18) ?></button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-body">
+        <span class="confirm-icon"><?= icon('alert') ?></span>
+        <p id="confirm-message"></p>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn ghost" data-modal-close="">Batal</button>
+      <button type="button" class="btn danger" id="confirm-ok">Hapus</button>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript" src="assets/js/app.js"></script>
+</body>
+</html>

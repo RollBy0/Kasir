@@ -1,0 +1,101 @@
+<?php
+$role = $user['role'];
+$editing = $form['PelangganID'] > 0;
+$namaLocked = $editing && !in_array('NamaPelanggan', $editable, true);
+$actions = $canCreate ? '<a class="btn primary" href="' . e(url('pelanggan.php', ['q' => $q, 'baru' => '1'])) . '">' . icon('plus', 17) . ' Daftarkan Member</a>' : '';
+echo page_header('Member', 'Data pelanggan yang terdaftar sebagai member toko.', $actions);
+echo permission_bar(ACCESS[$role]['pelanggan'], $role === 'Petugas' ? 'Update terbatas pada Nomor Telepon dan Alamat.' : '');
+?>
+
+<section class="card">
+  <div class="toolbar">
+    <?= search_form($q, 'Cari nama, telepon, atau alamat...') ?>
+    <span class="toolbar-meta"><?= $total ?> member terdaftar</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Nama Pelanggan</th><th>Alamat</th><th>Nomor Telepon</th><th>Transaksi</th><th class="align-right">Aksi</th></tr>
+      </thead>
+      <tbody>
+        <?php foreach ($pelanggan as $member): ?>
+          <?php $count = (int) $member['jumlah_transaksi']; ?>
+          <tr>
+            <td class="muted">#<?= (int) $member['PelangganID'] ?></td>
+            <td>
+              <div class="person-cell">
+                <span class="avatar small"><?= e(initials($member['NamaPelanggan'])) ?></span>
+                <strong><?= e($member['NamaPelanggan']) ?></strong>
+              </div>
+            </td>
+            <td class="wrap-cell"><?= e($member['Alamat']) ?></td>
+            <td><?= e($member['NomorTelepon']) ?></td>
+            <td><?= $count ?>x</td>
+            <td>
+              <div class="row-actions">
+                <?php if ($canUpdate): ?>
+                  <a class="icon-action" href="<?= e(url('pelanggan.php', ['q' => $q, 'edit' => $member['PelangganID']])) ?>" aria-label="Ubah <?= e($member['NamaPelanggan']) ?>"><?= icon('edit', 16) ?></a>
+                <?php endif; ?>
+                <?php if ($canDelete): ?>
+                  <?php if ($count > 0): ?>
+                    <button type="button" class="icon-action danger" disabled="disabled" title="Member memiliki riwayat transaksi"><?= icon('trash', 16) ?></button>
+                  <?php else: ?>
+                    <form method="post" action="<?= e($backUrl) ?>" data-confirm-title="Hapus member?" data-confirm-message="Data member <?= e($member['NamaPelanggan']) ?> akan dihapus permanen." data-confirm-label="Hapus Member">
+                      <?= csrf_field() ?>
+                      <input type="hidden" name="aksi" value="hapus" />
+                      <input type="hidden" name="PelangganID" value="<?= (int) $member['PelangganID'] ?>" />
+                      <button type="submit" class="icon-action danger" aria-label="Hapus <?= e($member['NamaPelanggan']) ?>"><?= icon('trash', 16) ?></button>
+                    </form>
+                  <?php endif; ?>
+                <?php endif; ?>
+              </div>
+            </td>
+          </tr>
+        <?php endforeach; ?>
+        <?php if (!$pelanggan) echo empty_row(6); ?>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<?php if ($formOpen): ?>
+  <div class="modal-layer" role="dialog" aria-modal="true" aria-labelledby="form-title" data-close-href="<?= e($backUrl) ?>">
+    <a class="modal-backdrop" href="<?= e($backUrl) ?>" aria-label="Tutup"></a>
+    <form class="modal" method="post" action="<?= e($backUrl) ?>">
+      <?= csrf_field() ?>
+      <input type="hidden" name="aksi" value="simpan" />
+      <input type="hidden" name="PelangganID" value="<?= (int) $form['PelangganID'] ?>" />
+      <div class="modal-head">
+        <div>
+          <h2 id="form-title"><?= $editing ? 'Ubah Data Member' : 'Daftarkan Member' ?></h2>
+          <?php if ($namaLocked): ?><p>Sebagai Petugas, Anda hanya dapat mengubah nomor telepon dan alamat.</p><?php endif; ?>
+        </div>
+        <a class="icon-button" href="<?= e($backUrl) ?>" aria-label="Tutup"><?= icon('close', 18) ?></a>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <label class="field">
+            <span>Nama Pelanggan</span>
+            <input type="text" name="NamaPelanggan" maxlength="25" value="<?= e($form['NamaPelanggan']) ?>"<?= attr_if($namaLocked, 'disabled') ?><?= attr_if(!$editing, 'autofocus') ?> />
+            <?php if ($namaLocked): ?><small>Terkunci untuk role Petugas.</small><?php endif; ?>
+          </label>
+          <label class="field">
+            <span>Nomor Telepon</span>
+            <input type="tel" name="NomorTelepon" maxlength="15" value="<?= e($form['NomorTelepon']) ?>" />
+          </label>
+          <div class="span-2">
+            <label class="field">
+              <span>Alamat</span>
+              <textarea name="Alamat" rows="3" cols="40"><?= e($form['Alamat']) ?></textarea>
+            </label>
+          </div>
+        </div>
+        <?php if ($formError !== ''): ?><p class="form-error"><?= e($formError) ?></p><?php endif; ?>
+      </div>
+      <div class="modal-foot">
+        <a class="btn ghost" href="<?= e($backUrl) ?>">Batal</a>
+        <button type="submit" class="btn primary">Simpan</button>
+      </div>
+    </form>
+  </div>
+<?php endif; ?>

@@ -1,0 +1,67 @@
+<?php
+/** @var array $user  @var string $activeModule */
+$pageTitle = MODULES[$activeModule]['label'] ?? 'Kasir';
+$role = $user['role'];
+$ongoingCount = (int) db_value("SELECT COUNT(*) FROM tb_penjualan WHERE Status = 'Ongoing'");
+require __DIR__ . '/head.xhtml';
+?>
+<body>
+<div class="app-shell">
+  <div class="backdrop is-hidden" data-sidebar-close=""></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <img class="brand-logo" src="assets/img/logo-segitiga.svg" alt="" />
+      <div class="brand-text"><strong><?= e(STORE_NAME) ?></strong><small><?= e(STORE_TAGLINE) ?></small></div>
+      <button type="button" class="close-sidebar" data-sidebar-close="" aria-label="Tutup menu"><?= icon('close') ?></button>
+    </div>
+
+    <nav>
+      <p class="nav-label">MENU <?= e(strtoupper($role)) ?></p>
+      <?php foreach (MODULES as $key => $module): ?>
+        <?php if (!can($role, $key, 'read')) continue; ?>
+        <a class="nav-item<?= $key === $activeModule ? ' active' : '' ?>" href="<?= e($module['file']) ?>">
+          <?= icon($module['icon']) ?>
+          <span><?= e($module['label']) ?></span>
+          <?php if ($key === 'transaksi' && $ongoingCount > 0): ?><span class="nav-badge"><?= $ongoingCount ?></span><?php endif; ?>
+        </a>
+      <?php endforeach; ?>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="profile-mini">
+        <div class="avatar"><?= e(initials($user['NamaUser'])) ?></div>
+        <div><strong><?= e($user['NamaUser']) ?></strong><small><?= $role === 'Admin' ? 'Administrator' : 'Petugas Kasir' ?></small></div>
+      </div>
+      <form method="post" action="logout.php">
+        <?= csrf_field() ?>
+        <button type="submit" class="logout-button" aria-label="Keluar" title="Keluar"><?= icon('logout') ?></button>
+      </form>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header>
+      <button type="button" class="menu-button" data-sidebar-open="" aria-label="Buka menu"><?= icon('menu') ?></button>
+      <div class="breadcrumb">
+        <span><?= e(STORE_NAME) ?></span>
+        <?= icon('chevron', 14) ?>
+        <strong><?= e($pageTitle) ?></strong>
+      </div>
+      <div class="header-actions">
+        <span class="nav-role <?= e(strtolower($role)) ?>"><?= e(strtoupper($role)) ?></span>
+        <div class="nav-profile">
+          <img src="assets/img/avatar.svg" alt="" />
+          <div><strong><?= e($user['NamaUser']) ?></strong><small>@<?= e($user['username']) ?></small></div>
+        </div>
+        <form method="post" action="logout.php">
+          <?= csrf_field() ?>
+          <button type="submit" class="nav-logout" aria-label="Keluar">
+            <span class="nav-logout-icon"><img src="assets/img/logout.png" alt="" /></span>
+            <span class="nav-logout-label">Keluar</span>
+          </button>
+        </form>
+      </div>
+    </header>
+
+    <div class="content">
