@@ -44,6 +44,20 @@ function avatar_html(array $row, string $size = ''): string
     return '<span class="' . $class . '">' . e(initials($row['NamaUser'])) . '</span>';
 }
 
+/** URL foto profil dari kolom tb_user.foto, atau null bila belum ada / nama file tidak valid. */
+function foto_url(array $row): ?string
+{
+    $foto = basename((string) ($row['foto'] ?? ''));
+    return ($foto !== '' && preg_match('/^u[0-9]+_[a-f0-9]{16}\.(jpg|png|webp)$/', $foto)) ? 'uploads/profil/' . $foto : null;
+}
+
+/** URL aset CSS/JS dengan versi dari waktu ubah file, agar browser tidak memakai salinan lama dari cache. */
+function asset(string $path): string
+{
+    $file = __DIR__ . '/../' . $path;
+    return e(is_file($file) ? $path . '?v=' . filemtime($file) : $path);
+}
+
 /** Judul halaman. $actions berisi XHTML tombol (opsional). */
 function page_header(string $title, string $description, string $actions = ''): string
 {

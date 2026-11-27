@@ -142,38 +142,6 @@
     });
   });
 
-  /* ---------- Pratinjau dan validasi foto ---------- */
-  var fotoInput = $('#foto-input');
-  if (fotoInput) {
-    var fotoPreview = $('#foto-preview');
-    var fotoPreviewWrap = $('#foto-preview-wrap');
-    var fotoError = $('#foto-error');
-    var fotoSubmit = $('#foto-submit');
-    var previewUrl = null;
-    fotoInput.addEventListener('change', function () {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      fotoPreviewWrap.classList.add('is-hidden');
-      fotoError.textContent = '';
-      fotoError.classList.add('is-hidden');
-      fotoSubmit.disabled = false;
-      var file = fotoInput.files[0];
-      if (!file) return;
-      if (['image/jpeg', 'image/png', 'image/webp'].indexOf(file.type) === -1) {
-        fotoError.textContent = 'Foto harus berupa gambar JPG, PNG, atau WebP.';
-      } else if (file.size > 2 * 1024 * 1024) {
-        fotoError.textContent = 'Ukuran foto maksimal 2 MB.';
-      }
-      if (fotoError.textContent) {
-        fotoError.classList.remove('is-hidden');
-        fotoSubmit.disabled = true;
-        return;
-      }
-      previewUrl = URL.createObjectURL(file);
-      fotoPreview.src = previewUrl;
-      fotoPreviewWrap.classList.remove('is-hidden');
-    });
-  }
-
   /* ---------- Detail transaksi: ubah status (Admin) ---------- */
   var statusSelect = $('#status-select');
   if (statusSelect) {
@@ -343,5 +311,58 @@
     });
 
     render();
+  }
+  /* ---------- Profil: pratinjau & validasi foto ---------- */
+  var photoInput = $('#photo-input');
+  if (photoInput) {
+    var photoDrop = $('#photo-drop');
+    var photoPreview = $('#photo-preview');
+    var photoName = $('#photo-name');
+    var photoError = $('#photo-error');
+    var photoSubmit = $('#photo-submit');
+    var maxBytes = Number(photoInput.getAttribute('data-max'));
+    var allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    var previewUrl = null;
+
+    var photoMessage = function (message) {
+      photoError.textContent = message;
+      photoError.classList.toggle('is-hidden', !message);
+    };
+
+    var handlePhoto = function () {
+      var file = photoInput.files && photoInput.files[0];
+      if (previewUrl) { URL.revokeObjectURL(previewUrl); previewUrl = null; }
+      photoSubmit.disabled = true;
+      photoName.classList.remove('chosen');
+      if (!file) { photoName.textContent = 'Belum ada file dipilih'; photoMessage(''); return; }
+
+      photoName.textContent = file.name + ' (' + (file.size / 1024 / 1024).toFixed(2) + ' MB)';
+      if (allowed.indexOf(file.type) === -1) { photoMessage('Format foto harus JPG, PNG, atau WebP.'); return; }
+      if (file.size > maxBytes) { photoMessage('Ukuran foto maksimal 2 MB.'); return; }
+
+      photoMessage('');
+      photoName.classList.add('chosen');
+      previewUrl = URL.createObjectURL(file);
+      var img = document.createElement('img');
+      img.src = previewUrl;
+      img.alt = '';
+      photoPreview.innerHTML = '';
+      photoPreview.appendChild(img);
+      photoSubmit.disabled = false;
+    };
+    photoInput.addEventListener('change', handlePhoto);
+
+    ['dragenter', 'dragover'].forEach(function (type) {
+      photoDrop.addEventListener(type, function (event) { event.preventDefault(); photoDrop.classList.add('is-dragover'); });
+    });
+    ['dragleave', 'drop'].forEach(function (type) {
+      photoDrop.addEventListener(type, function (event) { event.preventDefault(); photoDrop.classList.remove('is-dragover'); });
+    });
+    photoDrop.addEventListener('drop', function (event) {
+      if (!event.dataTransfer || !event.dataTransfer.files.length) return;
+      photoInput.files = event.dataTransfer.files;
+      handlePhoto();
+    });
+    $('#photo-form').addEventListener('submit', function () { photoSubmit.disabled = true; photoSubmit.textContent = 'Menyimpan...'; });
   }
 })();

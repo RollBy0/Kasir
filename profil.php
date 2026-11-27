@@ -117,4 +117,13 @@ if (is_post()) {
     }
 }
 
-render('profil', ['user' => $user, 'formError' => $formError, 'activeModule' => 'profil']);
+$transactionCount = (int) db_value('SELECT COUNT(*) FROM tb_penjualan WHERE UserID = ?', [$user['UserID']]);
+$revenue = (float) db_value("SELECT COALESCE(SUM(TotalHarga), 0) FROM tb_penjualan WHERE UserID = ? AND Status = 'Complete'", [$user['UserID']]);
+$moduleCount = 0;
+foreach (MODULES as $module => $details) {
+    if ($module !== 'dashboard' && can($user['role'], $module, 'read')) {
+        $moduleCount++;
+    }
+}
+
+render('profil', compact('user', 'formError', 'transactionCount', 'revenue', 'moduleCount') + ['activeModule' => 'profil']);
