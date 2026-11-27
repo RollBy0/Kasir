@@ -1,0 +1,22 @@
+<?php $pageTitle = 'Masuk'; require __DIR__ . '/partials/head.xhtml'; ?>
+<body>
+<div class="login-page">
+  <form class="login-form" method="post" action="index.php">
+    <?= csrf_field() ?>
+    <h2>Masuk</h2>
+    <label class="field">
+      <span>Username</span>
+      <input type="text" name="username" value="<?= e($username) ?>" autocomplete="username" autofocus="autofocus" required="required" />
+    </label>
+    <label class="field">
+      <span>Password</span>
+      <input type="password" name="password" autocomplete="current-password" required="required" />
+    </label>
+    <?php if ($error !== ''): ?><p class="form-error"><?= e($error) ?></p><?php endif; ?>
+    <button type="submit" class="btn primary block">Masuk</button>
+  </form>
+</div>
+<?php require __DIR__ . '/partials/toast.xhtml'; ?>
+<script type="text/javascript" src="assets/js/app.js"></script>
+</body>
+</html>

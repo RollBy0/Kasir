@@ -1,0 +1,108 @@
+<?php
+$role = $user['role'];
+$hasActions = $canUpdate || $canDelete;
+$actions = $canCreate ? '<a class="btn primary" href="' . e(url('produk.php', ['q' => $q, 'menipis' => $lowOnly ? '1' : '', 'baru' => '1'])) . '">' . icon('plus', 17) . ' Tambah Produk</a>' : '';
+echo page_header('Produk', 'Daftar produk, harga jual, dan stok yang tersedia.', $actions);
+echo permission_bar(ACCESS[$role]['produk'], $role === 'Petugas' ? 'Petugas hanya dapat melihat data produk.' : '');
+?>
+
+<section class="card">
+  <div class="toolbar">
+    <?= search_form($q, 'Cari nama produk...', ['menipis' => $lowOnly ? '1' : '']) ?>
+    <form method="get" action="produk.php">
+      <input type="hidden" name="q" value="<?= e($q) ?>" />
+      <label class="check-toggle">
+        <input type="checkbox" name="menipis" value="1" data-autosubmit=""<?= attr_if($lowOnly, 'checked') ?> />
+        <span>Stok menipis saja</span>
+      </label>
+    </form>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Nama Produk</th><th class="align-right">Harga</th><th class="align-right">Stok</th><th>Status Stok</th>
+          <?php if ($hasActions): ?><th class="align-right">Aksi</th><?php endif; ?>
+        </tr>
+      </thead>
+      <tbody>
+        <?php foreach ($produk as $item): ?>
+          <?php
+          $stok = (int) $item['Stok'];
+          $used = (int) $item['dipakai'] > 0;
+          $stockClass = $stok === 0 ? 'empty' : ($stok <= LOW_STOCK ? 'low' : 'ok');
+          $stockLabel = $stok === 0 ? 'Habis' : ($stok <= LOW_STOCK ? 'Menipis' : 'Aman');
+          ?>
+          <tr>
+            <td class="muted">#<?= (int) $item['ProdukID'] ?></td>
+            <td><strong><?= e($item['NamaProduk']) ?></strong></td>
+            <td class="align-right"><?= rupiah($item['Harga']) ?></td>
+            <td class="align-right"><strong><?= $stok ?></strong></td>
+            <td><span class="stock-badge <?= $stockClass ?>"><?= $stockLabel ?></span></td>
+            <?php if ($hasActions): ?>
+              <td>
+                <div class="row-actions">
+                  <?php if ($canUpdate): ?>
+                    <a class="icon-action" href="<?= e(url('produk.php', ['q' => $q, 'menipis' => $lowOnly ? '1' : '', 'edit' => $item['ProdukID']])) ?>" aria-label="Ubah <?= e($item['NamaProduk']) ?>"><?= icon('edit', 16) ?></a>
+                  <?php endif; ?>
+                  <?php if ($canDelete): ?>
+                    <?php if ($used): ?>
+                      <button type="button" class="icon-action danger" disabled="disabled" title="Produk tercatat pada detail penjualan"><?= icon('trash', 16) ?></button>
+                    <?php else: ?>
+                      <form method="post" action="<?= e($backUrl) ?>" data-confirm-title="Hapus produk?" data-confirm-message="Produk <?= e($item['NamaProduk']) ?> akan dihapus dari katalog." data-confirm-label="Hapus Produk">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="aksi" value="hapus" />
+                        <input type="hidden" name="ProdukID" value="<?= (int) $item['ProdukID'] ?>" />
+                        <button type="submit" class="icon-action danger" aria-label="Hapus <?= e($item['NamaProduk']) ?>"><?= icon('trash', 16) ?></button>
+                      </form>
+                    <?php endif; ?>
+                  <?php endif; ?>
+                </div>
+              </td>
+            <?php endif; ?>
+          </tr>
+        <?php endforeach; ?>
+        <?php if (!$produk) echo empty_row($hasActions ? 6 : 5); ?>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<?php if ($formOpen): ?>
+  <div class="modal-layer" role="dialog" aria-modal="true" aria-labelledby="form-title" data-close-href="<?= e($backUrl) ?>">
+    <a class="modal-backdrop" href="<?= e($backUrl) ?>" aria-label="Tutup"></a>
+    <form class="modal" method="post" action="<?= e($backUrl) ?>">
+      <?= csrf_field() ?>
+      <input type="hidden" name="aksi" value="simpan" />
+      <input type="hidden" name="ProdukID" value="<?= (int) $form['ProdukID'] ?>" />
+      <div class="modal-head">
+        <div><h2 id="form-title"><?= $form['ProdukID'] ? 'Ubah Produk' : 'Tambah Produk' ?></h2></div>
+        <a class="icon-button" href="<?= e($backUrl) ?>" aria-label="Tutup"><?= icon('close', 18) ?></a>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="span-2">
+            <label class="field">
+              <span>Nama Produk</span>
+              <input type="text" name="NamaProduk" maxlength="25" value="<?= e($form['NamaProduk']) ?>" autofocus="autofocus" required="required" />
+              <small>Maksimal 25 karakter.</small>
+            </label>
+          </div>
+          <label class="field">
+            <span>Harga (Rp)</span>
+            <input type="number" name="Harga" min="0" step="100" value="<?= e($form['Harga']) ?>" required="required" />
+          </label>
+          <label class="field">
+            <span>Stok</span>
+            <input type="number" name="Stok" min="0" step="1" value="<?= e($form['Stok']) ?>" required="required" />
+          </label>
+        </div>
+        <?php if ($formError !== ''): ?><p class="form-error"><?= e($formError) ?></p><?php endif; ?>
+      </div>
+      <div class="modal-foot">
+        <a class="btn ghost" href="<?= e($backUrl) ?>">Batal</a>
+        <button type="submit" class="btn primary">Simpan</button>
+      </div>
+    </form>
+  </div>
+<?php endif; ?>

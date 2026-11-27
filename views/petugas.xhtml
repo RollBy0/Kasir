@@ -1,0 +1,106 @@
+<?php
+$editing = $form['UserID'] > 0;
+$editingSelf = $editing && $form['UserID'] === (int) $user['UserID'];
+$roleQuery = $roleFilter === 'Semua' ? '' : $roleFilter;
+echo page_header('Data Petugas', 'Kelola akun yang dapat masuk ke sistem kasir.', '<a class="btn primary" href="' . e(url('petugas.php', ['q' => $q, 'role' => $roleQuery, 'baru' => '1'])) . '">' . icon('plus', 17) . ' Tambah Akun</a>');
+echo permission_bar(ACCESS['Admin']['petugas'], 'Modul ini tidak tersedia untuk role Petugas.');
+?>
+
+<section class="card">
+  <div class="toolbar">
+    <?= search_form($q, 'Cari nama atau username...', ['role' => $roleQuery]) ?>
+    <div class="segmented">
+      <?php foreach (['Semua', 'Admin', 'Petugas'] as $item): ?>
+        <a class="<?= $roleFilter === $item ? 'selected' : '' ?>" href="<?= e(url('petugas.php', ['q' => $q, 'role' => $item === 'Semua' ? '' : $item])) ?>"><?= $item ?></a>
+      <?php endforeach; ?>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>UserID</th><th>Nama User</th><th>Username</th><th>Role</th><th class="align-right">Aksi</th></tr>
+      </thead>
+      <tbody>
+        <?php foreach ($users as $row): ?>
+          <?php $isSelf = (int) $row['UserID'] === (int) $user['UserID']; ?>
+          <tr>
+            <td class="muted">#<?= (int) $row['UserID'] ?></td>
+            <td>
+              <div class="person-cell">
+                <span class="avatar small"><?= e(initials($row['NamaUser'])) ?></span>
+                <strong><?= e($row['NamaUser']) ?></strong>
+                <?php if ($isSelf): ?><span class="tag">Anda</span><?php endif; ?>
+              </div>
+            </td>
+            <td><?= e($row['username']) ?></td>
+            <td><span class="role-badge <?= e(strtolower($row['role'])) ?>"><?= e($row['role']) ?></span></td>
+            <td>
+              <div class="row-actions">
+                <a class="icon-action" href="<?= e(url('petugas.php', ['q' => $q, 'role' => $roleQuery, 'edit' => $row['UserID']])) ?>" aria-label="Ubah <?= e($row['NamaUser']) ?>"><?= icon('edit', 16) ?></a>
+                <?php if ($isSelf): ?>
+                  <button type="button" class="icon-action danger" disabled="disabled" title="Tidak dapat menghapus akun sendiri"><?= icon('trash', 16) ?></button>
+                <?php else: ?>
+                  <form method="post" action="<?= e($backUrl) ?>" data-confirm-title="Hapus akun?" data-confirm-message="Akun <?= e($row['NamaUser']) ?> (<?= e($row['username']) ?>) akan dihapus permanen dan tidak dapat login lagi." data-confirm-label="Hapus Akun">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="aksi" value="hapus" />
+                    <input type="hidden" name="UserID" value="<?= (int) $row['UserID'] ?>" />
+                    <button type="submit" class="icon-action danger" aria-label="Hapus <?= e($row['NamaUser']) ?>"><?= icon('trash', 16) ?></button>
+                  </form>
+                <?php endif; ?>
+              </div>
+            </td>
+          </tr>
+        <?php endforeach; ?>
+        <?php if (!$users) echo empty_row(5); ?>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<?php if ($formOpen): ?>
+  <div class="modal-layer" role="dialog" aria-modal="true" aria-labelledby="form-title" data-close-href="<?= e($backUrl) ?>">
+    <a class="modal-backdrop" href="<?= e($backUrl) ?>" aria-label="Tutup"></a>
+    <form class="modal" method="post" action="<?= e($backUrl) ?>">
+      <?= csrf_field() ?>
+      <input type="hidden" name="aksi" value="simpan" />
+      <input type="hidden" name="UserID" value="<?= (int) $form['UserID'] ?>" />
+      <div class="modal-head">
+        <div>
+          <h2 id="form-title"><?= $editing ? 'Ubah Akun' : 'Tambah Akun' ?></h2>
+          <p>Password disimpan sebagai hash di server PHP (password_hash).</p>
+        </div>
+        <a class="icon-button" href="<?= e($backUrl) ?>" aria-label="Tutup"><?= icon('close', 18) ?></a>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <label class="field">
+            <span>Nama User</span>
+            <input type="text" name="NamaUser" maxlength="25" value="<?= e($form['NamaUser']) ?>" autofocus="autofocus" required="required" />
+          </label>
+          <label class="field">
+            <span>Username</span>
+            <input type="text" name="username" maxlength="25" value="<?= e($form['username']) ?>" required="required" />
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input type="password" name="password" autocomplete="new-password"<?= attr_if(!$editing, 'required') ?> />
+            <?php if ($editing): ?><small>Kosongkan jika tidak ingin mengganti password.</small><?php endif; ?>
+          </label>
+          <label class="field">
+            <span>Role</span>
+            <select name="role"<?= attr_if($editingSelf, 'disabled') ?>>
+              <option value="Admin"<?= attr_if($form['role'] === 'Admin', 'selected') ?>>Admin</option>
+              <option value="Petugas"<?= attr_if($form['role'] === 'Petugas', 'selected') ?>>Petugas</option>
+            </select>
+            <?php if ($editingSelf): ?><small>Role akun sendiri tidak dapat diubah.</small><?php endif; ?>
+          </label>
+        </div>
+        <?php if ($formError !== ''): ?><p class="form-error"><?= e($formError) ?></p><?php endif; ?>
+      </div>
+      <div class="modal-foot">
+        <a class="btn ghost" href="<?= e($backUrl) ?>">Batal</a>
+        <button type="submit" class="btn primary">Simpan</button>
+      </div>
+    </form>
+  </div>
+<?php endif; ?>

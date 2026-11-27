@@ -1,0 +1,71 @@
+<?php
+$presets = ['Hari ini' => 0, '7 hari' => 6, '30 hari' => 29];
+$topMax = max(1, ...array_map(fn ($item) => (int) $item['qty'], $topProducts ?: [['qty' => 1]]));
+echo page_header('Laporan Transaksi', 'Rekap pendapatan dan penjualan berdasarkan periode.');
+echo permission_bar(ACCESS[$user['role']]['laporan'], 'Laporan hanya dapat dibaca.');
+?>
+
+<section class="card filter-card">
+  <div class="segmented">
+    <?php foreach ($presets as $label => $days): ?>
+      <a class="<?= $from === days_ago($days) && $to === days_ago(0) ? 'selected' : '' ?>" href="<?= e(url('laporan.php', ['dari' => days_ago($days), 'sampai' => days_ago(0)])) ?>"><?= e($label) ?></a>
+    <?php endforeach; ?>
+  </div>
+  <form class="date-range" method="get" action="laporan.php">
+    <?= icon('calendar', 17) ?>
+    <input type="date" name="dari" value="<?= e($from) ?>" max="<?= e($to) ?>" aria-label="Dari tanggal" data-autosubmit="" />
+    <span>s/d</span>
+    <input type="date" name="sampai" value="<?= e($to) ?>" min="<?= e($from) ?>" aria-label="Sampai tanggal" data-autosubmit="" />
+  </form>
+</section>
+
+<section class="report-summary">
+  <div class="card summary-tile highlight"><small>Total Pendapatan</small><strong><?= rupiah($completed['total']) ?></strong><span><?= $completed['jumlah'] ?> transaksi Complete</span></div>
+  <div class="card summary-tile"><small>Produk Terjual</small><strong><?= $itemsSold ?></strong><span>unit barang</span></div>
+  <div class="card summary-tile"><small>Rata-rata / Transaksi</small><strong><?= rupiah($completed['jumlah'] ? $completed['total'] / $completed['jumlah'] : 0) ?></strong><span>nilai belanja</span></div>
+  <div class="card summary-tile"><small>Ongoing / Cancelled</small><strong><?= $ongoing['jumlah'] ?> / <?= $cancelled['jumlah'] ?></strong><span><?= rupiah($cancelled['total']) ?> dibatalkan</span></div>
+</section>
+
+<section class="dashboard-grid">
+  <article class="card transaction-card">
+    <div class="card-head padded"><div><h2>Rekap Harian</h2><p>Hanya transaksi berstatus Complete</p></div></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tanggal</th><th class="align-right">Jumlah Transaksi</th><th class="align-right">Pendapatan</th></tr></thead>
+        <tbody>
+          <?php foreach ($daily as $day): ?>
+            <tr>
+              <td><strong><?= e(tanggal($day['tanggal'])) ?></strong></td>
+              <td class="align-right"><?= (int) $day['jumlah'] ?></td>
+              <td class="align-right"><strong><?= rupiah($day['pendapatan']) ?></strong></td>
+            </tr>
+          <?php endforeach; ?>
+          <?php if (!$daily) echo empty_row(3, 'Tidak ada transaksi pada periode ini.'); ?>
+        </tbody>
+        <?php if ($daily): ?>
+          <tfoot><tr><td>Total</td><td class="align-right"><?= $completed['jumlah'] ?></td><td class="align-right"><?= rupiah($completed['total']) ?></td></tr></tfoot>
+        <?php endif; ?>
+      </table>
+    </div>
+  </article>
+
+  <article class="card stock-card">
+    <div class="card-head"><div><h2>Produk Terlaris</h2><p>Berdasarkan jumlah unit terjual</p></div></div>
+    <?php if ($topProducts): ?>
+      <ol class="top-list">
+        <?php foreach ($topProducts as $index => $item): ?>
+          <li>
+            <span class="rank"><?= $index + 1 ?></span>
+            <div>
+              <div class="top-line"><strong><?= e($item['NamaProduk']) ?></strong><span><?= (int) $item['qty'] ?> unit</span></div>
+              <div class="progress"><i style="width: <?= round((int) $item['qty'] / $topMax * 100, 1) ?>%"></i></div>
+              <small><?= rupiah($item['total']) ?></small>
+            </div>
+          </li>
+        <?php endforeach; ?>
+      </ol>
+    <?php else: ?>
+      <p class="muted-text">Belum ada penjualan.</p>
+    <?php endif; ?>
+  </article>
+</section>

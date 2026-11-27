@@ -1,0 +1,104 @@
+<?php
+$role = $user['role'];
+$statCards = [
+    ['label' => 'Total Pendapatan',   'value' => rupiah($todayRevenue), 'icon' => 'ikon-pendapatan.png', 'tone' => 'green',  'note' => '', 'noteTone' => ''],
+    ['label' => 'Transaksi hari ini', 'value' => (string) $todaySales,  'icon' => 'ikon-transaksi.png',  'tone' => 'cyan',   'note' => $ongoingToday . ' Transaksi Masih Ongoing', 'noteTone' => 'dark'],
+    ['label' => 'Produk Terjual',     'value' => (string) $itemsToday,  'icon' => 'ikon-produk.png',     'tone' => 'red',    'note' => 'Dari total ' . $productCount . ' jenis produk', 'noteTone' => 'mid'],
+    ['label' => 'Member Terdaftar',   'value' => (string) $memberCount, 'icon' => 'ikon-member.png',     'tone' => 'orange', 'note' => '', 'noteTone' => ''],
+];
+?>
+<section class="page-heading">
+  <div>
+    <p><?= e(tanggal_panjang()) ?></p>
+    <h1>Selamat datang, <?= e($user['NamaUser']) ?>!</h1>
+    <span>Berikut ringkasan aktivitas toko hari ini.</span>
+  </div>
+  <?php if (can($role, 'transaksi', 'create')): ?>
+    <a class="btn primary" href="transaksi.php?baru=1"><?= icon('cart', 17) ?> Transaksi Baru</a>
+  <?php endif; ?>
+</section>
+
+<section class="dashboard-layout">
+  <div class="dashboard-column">
+  <article class="card chart-card">
+    <div class="card-head">
+      <div><h2>Ringkasan Pendapatan</h2><p>Transaksi berstatus Complete, 7 hari terakhir</p></div>
+      <a class="btn outline small" href="laporan.php">Lihat Laporan</a>
+    </div>
+    <div class="chart-summary">
+      <div><small>Total 7 hari</small><strong><?= rupiah($weekTotal) ?></strong><small><?= $weekCount ?> transaksi Complete</small></div>
+    </div>
+  </article>
+
+  <article class="card stock-card">
+    <div class="card-head">
+      <div><h2>Stok Menipis</h2><p>Stok &#8804; <?= LOW_STOCK ?> unit</p></div>
+    </div>
+    <div class="stock-list">
+      <?php foreach ($lowStock as $item): ?>
+        <div class="stock-row">
+          <span class="stock-icon"><?= icon('box', 18) ?></span>
+          <div class="product-copy"><strong><?= e($item['NamaProduk']) ?></strong><small>ID #<?= (int) $item['ProdukID'] ?> · <?= rupiah($item['Harga']) ?></small></div>
+          <div class="stock-count"><strong><?= (int) $item['Stok'] ?></strong><small>tersisa</small></div>
+        </div>
+      <?php endforeach; ?>
+      <?php if (!$lowStock): ?><p class="muted-text">Semua stok aman.</p><?php endif; ?>
+    </div>
+    <a class="text-button" href="produk.php">Lihat semua produk <?= icon('chevron', 16) ?></a>
+  </article>
+
+  <article class="card transaction-card">
+    <div class="card-head padded">
+      <div><h2>Transaksi Terbaru</h2><p>5 transaksi terakhir</p></div>
+      <a class="btn outline small" href="transaksi.php">Lihat Semua</a>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ID Penjualan</th><th>Pelanggan</th><th class="align-right">Total</th><th>Status</th></tr></thead>
+        <tbody>
+          <?php foreach ($latest as $sale): ?>
+            <tr>
+              <td><strong><?= e($sale['PenjualanID']) ?></strong><small><?= e(tanggal($sale['TanggalPenjualan'])) ?></small></td>
+              <td><?= e(nama_pelanggan((int) $sale['PelangganID'], $sale['NamaPelanggan'])) ?></td>
+              <td class="align-right"><strong><?= rupiah($sale['TotalHarga']) ?></strong></td>
+              <td><?= status_badge($sale['Status']) ?></td>
+            </tr>
+          <?php endforeach; ?>
+          <?php if (!$latest) echo empty_row(4, 'Belum ada transaksi.'); ?>
+        </tbody>
+      </table>
+    </div>
+  </article>
+
+  <article class="card access-card">
+    <div class="card-head">
+      <div><h2>Hak Akses <?= e($role) ?></h2><p>Berdasarkan role akun yang login</p></div>
+    </div>
+    <ul class="access-list">
+      <?php foreach (MODULES as $key => $module): ?>
+        <?php if ($key === 'dashboard') continue; ?>
+        <li>
+          <div><strong><?= e($module['label']) ?></strong><small><?= e($module['description']) ?></small></div>
+          <span class="crud-letters">
+            <?php foreach (CRUD as $action): ?>
+              <b class="<?= can($role, $key, $action) ? 'on' : '' ?>" title="<?= $action ?>"><?= strtoupper($action[0]) ?></b>
+            <?php endforeach; ?>
+          </span>
+        </li>
+      <?php endforeach; ?>
+    </ul>
+  </article>
+  </div>
+
+  <aside class="dashboard-summary">
+    <?php foreach ($statCards as $card): ?>
+      <article class="stat-card<?= $card['note'] !== '' ? ' has-note' : '' ?>">
+        <div class="stat-icon <?= $card['tone'] ?>"><span><img src="assets/img/<?= $card['icon'] ?>" alt="" /></span></div>
+        <div class="stat-body">
+          <div class="stat-copy"><span><?= e($card['label']) ?></span><strong><?= e($card['value']) ?></strong></div>
+          <?php if ($card['note'] !== ''): ?><div class="stat-note <?= $card['noteTone'] ?>"><?= e($card['note']) ?></div><?php endif; ?>
+        </div>
+      </article>
+    <?php endforeach; ?>
+  </aside>
+</section>
