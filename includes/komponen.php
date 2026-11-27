@@ -33,6 +33,17 @@ function icon(string $name, int $size = 20): string
     return '<svg xmlns="http://www.w3.org/2000/svg" width="' . $size . '" height="' . $size . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . (ICONS[$name] ?? '') . '</svg>';
 }
 
+/** Avatar foto atau inisial dengan markup XHTML yang aman. */
+function avatar_html(array $row, string $size = ''): string
+{
+    $class = 'avatar' . ($size !== '' ? ' ' . e($size) : '');
+    $foto = basename((string) ($row['foto'] ?? ''));
+    if ($foto !== '' && preg_match('/^u[0-9]+_[a-f0-9]{16}\.(jpg|png|webp)$/', $foto)) {
+        return '<span class="' . $class . '"><img src="uploads/profil/' . e($foto) . '" alt="Foto profil ' . e($row['NamaUser']) . '" /></span>';
+    }
+    return '<span class="' . $class . '">' . e(initials($row['NamaUser'])) . '</span>';
+}
+
 /** Judul halaman. $actions berisi XHTML tombol (opsional). */
 function page_header(string $title, string $description, string $actions = ''): string
 {

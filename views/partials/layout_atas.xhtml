@@ -1,6 +1,6 @@
 <?php
 /** @var array $user  @var string $activeModule */
-$pageTitle = MODULES[$activeModule]['label'] ?? 'Kasir';
+$pageTitle = $activeModule === 'profil' ? 'Profil Saya' : (MODULES[$activeModule]['label'] ?? 'Kasir');
 $role = $user['role'];
 $ongoingCount = (int) db_value("SELECT COUNT(*) FROM tb_penjualan WHERE Status = 'Ongoing'");
 require __DIR__ . '/head.xhtml';
@@ -29,10 +29,10 @@ require __DIR__ . '/head.xhtml';
     </nav>
 
     <div class="sidebar-footer">
-      <div class="profile-mini">
-        <div class="avatar"><?= e(initials($user['NamaUser'])) ?></div>
+      <a class="profile-mini" href="profil.php" aria-label="Profil Saya">
+        <?= avatar_html($user) ?>
         <div><strong><?= e($user['NamaUser']) ?></strong><small><?= $role === 'Admin' ? 'Administrator' : 'Petugas Kasir' ?></small></div>
-      </div>
+      </a>
       <form method="post" action="logout.php">
         <?= csrf_field() ?>
         <button type="submit" class="logout-button" aria-label="Keluar" title="Keluar"><?= icon('logout') ?></button>
@@ -50,10 +50,10 @@ require __DIR__ . '/head.xhtml';
       </div>
       <div class="header-actions">
         <span class="nav-role <?= e(strtolower($role)) ?>"><?= e(strtoupper($role)) ?></span>
-        <div class="nav-profile">
-          <img src="assets/img/avatar.svg" alt="" />
+        <a class="nav-profile" href="profil.php" aria-label="Profil Saya">
+          <?= avatar_html($user) ?>
           <div><strong><?= e($user['NamaUser']) ?></strong><small>@<?= e($user['username']) ?></small></div>
-        </div>
+        </a>
         <form method="post" action="logout.php">
           <?= csrf_field() ?>
           <button type="submit" class="nav-logout" aria-label="Keluar">

@@ -215,7 +215,7 @@ function current_user(): ?array
     if ($user === false) {
         $user = null;
         if (isset($_SESSION['user_id'])) {
-            $user = db_row('SELECT UserID, NamaUser, username, role FROM tb_user WHERE UserID = ?', [$_SESSION['user_id']]);
+            $user = db_row('SELECT UserID, NamaUser, username, role, foto FROM tb_user WHERE UserID = ?', [$_SESSION['user_id']]);
             if ($user === null) {
                 unset($_SESSION['user_id']); // akun dihapus: keluar dari sesi
             }

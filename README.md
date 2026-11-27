@@ -14,6 +14,8 @@ kasir-php/
 ├── produk.php
 ├── pelanggan.php
 ├── petugas.php
+├── profil.php          # profil dan foto pengguna sendiri
+├── cek_ketersediaan.php # cek username untuk form akun Admin
 ├── laporan.php
 ├── config/koneksi.php   # pengaturan database
 ├── includes/
@@ -25,9 +27,11 @@ kasir-php/
 │   ├── css/style.css
 │   ├── js/app.js        # sidebar, modal, konfirmasi hapus, keranjang kasir
 │   └── img/             # aset dari desain Figma
+├── uploads/profil/       # foto profil; folder dibuat otomatis bila perlu
 └── database/
     ├── kasir_db.sql                 # skema + data contoh
-    └── migrasi_status_penjualan.sql # hanya untuk database lama
+    ├── migrasi_status_penjualan.sql # hanya untuk database lama
+    └── migrasi_foto_profil.sql      # kolom foto untuk database lama
 ```
 
 Template di `views/` ditulis sebagai XHTML (XML yang well-formed: tag ditutup, atribut berkutip, `selected="selected"`, dll.)
@@ -64,11 +68,17 @@ Jika Anda sudah punya `kasir_db` sendiri, jangan impor `kasir_db.sql` (file itu 
 ```sql
 -- kolom status transaksi
 SOURCE database/migrasi_status_penjualan.sql;
+-- kolom foto profil (jalankan satu kali)
+SOURCE database/migrasi_foto_profil.sql;
 -- kolom password harus cukup panjang untuk hash
 ALTER TABLE tb_user MODIFY password VARCHAR(255) NOT NULL;
 ```
 
 Password lama yang masih tersimpan polos atau MD5 tetap bisa dipakai login sekali, lalu otomatis di-hash ulang.
+
+Untuk database yang sudah memiliki kolom status, jalankan hanya migrasi foto profil. Jangan impor ulang `kasir_db.sql` pada database aktif karena file tersebut menghapus tabel lama.
+
+Foto profil disimpan di `uploads/profil/`; pastikan proses PHP dapat menulis ke folder `uploads/`. Foto tidak ikut Git melalui `uploads/.gitignore`. Apache membaca `uploads/profil/.htaccess` untuk mencegah eksekusi skrip; jika memakai Nginx, atur server agar tidak mengeksekusi skrip dari folder upload. Dengan ekstensi GD, foto diproses ulang dan dikecilkan hingga maksimal 400×400 piksel. Jika GD tidak tersedia, gambar valid disimpan langsung setelah pemeriksaan MIME, ukuran, dan struktur gambar; sebaiknya aktifkan GD di server.
 
 ## Hak akses
 

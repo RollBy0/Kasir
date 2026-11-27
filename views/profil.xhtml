@@ -1,0 +1,39 @@
+<?php echo page_header('Profil Saya', 'Lihat akun dan kelola foto profil Anda.'); ?>
+
+<section class="card profil-card">
+  <div class="profil-heading">
+    <?= avatar_html($user, 'large') ?>
+    <div>
+      <h2><?= e($user['NamaUser']) ?></h2>
+      <span class="role-badge <?= e(strtolower($user['role'])) ?>"><?= e($user['role']) ?></span>
+    </div>
+  </div>
+  <dl class="profil-details">
+    <div><dt>Nama User</dt><dd><?= e($user['NamaUser']) ?></dd></div>
+    <div><dt>Username</dt><dd><?= e($user['username']) ?></dd></div>
+    <div><dt>UserID</dt><dd>#<?= (int) $user['UserID'] ?></dd></div>
+    <div><dt>Role</dt><dd><?= e($user['role']) ?></dd></div>
+  </dl>
+
+  <form method="post" action="profil.php" enctype="multipart/form-data" id="foto-form">
+    <?= csrf_field() ?>
+    <input type="hidden" name="aksi" value="upload_foto" />
+    <label class="field">
+      <span>Foto Profil</span>
+      <input type="file" name="foto" id="foto-input" accept="image/jpeg,image/png,image/webp" required="required" />
+      <small>JPG, PNG, atau WebP. Maksimal 2 MB.</small>
+    </label>
+    <div class="foto-preview is-hidden" id="foto-preview-wrap">
+      <img id="foto-preview" src="" alt="Pratinjau foto profil" />
+    </div>
+    <p class="form-error<?= $formError === '' ? ' is-hidden' : '' ?>" id="foto-error" role="alert"><?= e($formError) ?></p>
+    <div class="profil-actions"><button type="submit" class="btn primary" id="foto-submit">Simpan Foto</button></div>
+  </form>
+  <?php if (!empty($user['foto'])): ?>
+    <form method="post" action="profil.php" data-confirm-title="Hapus foto?" data-confirm-message="Foto profil Anda akan dihapus." data-confirm-label="Hapus Foto">
+      <?= csrf_field() ?>
+      <input type="hidden" name="aksi" value="hapus_foto" />
+      <button type="submit" class="btn danger">Hapus Foto</button>
+    </form>
+  <?php endif; ?>
+</section>
