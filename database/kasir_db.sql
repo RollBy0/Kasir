@@ -1,9 +1,3 @@
--- =========================================================
--- kasir_db : database aplikasi kasir KasirJayaJayaAtma
--- Impor lewat phpMyAdmin (tab Import) atau:  mysql -u root < kasir_db.sql
--- Data transaksi contoh dibuat relatif terhadap tanggal hari ini.
--- =========================================================
-
 CREATE DATABASE IF NOT EXISTS `kasir_db` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 USE `kasir_db`;
 

@@ -1,8 +1,4 @@
 <?php
-/**
- * Koneksi database (PDO + MySQL).
- * Sesuaikan nilai di bawah dengan pengaturan MySQL Anda (XAMPP/Laragon default: root tanpa password).
- */
 const DB_HOST = 'localhost';
 const DB_NAME = 'kasir_db';
 const DB_USER = 'root';
