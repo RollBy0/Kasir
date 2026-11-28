@@ -17,6 +17,7 @@ CREATE TABLE `tb_user` (
   `username` VARCHAR(25) NOT NULL,
   `password` VARCHAR(255) NOT NULL COMMENT 'hash dari password_hash()',
   `role` ENUM('Admin','Petugas') NOT NULL DEFAULT 'Petugas',
+  `foto` VARCHAR(255) NULL DEFAULT NULL,
   PRIMARY KEY (`UserID`),
   UNIQUE KEY `uk_username` (`username`)
 ) ENGINE=InnoDB;

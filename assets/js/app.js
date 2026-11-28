@@ -89,6 +89,59 @@
     input.addEventListener('change', function () { if (input.form) input.form.submit(); });
   });
 
+  /* ---------- Ketersediaan username akun ---------- */
+  $$('input[data-cek-unik="username"]').forEach(function (input) {
+    var form = input.form;
+    var status = $('.cek-status', input.parentElement);
+    var submit = $('button[type="submit"]', form);
+    var timer = null;
+    var request = null;
+    var sequence = 0;
+    var original = (input.getAttribute('data-cek-original') || '').trim().toLowerCase();
+
+    function show(message, kind, blocked) {
+      status.textContent = message;
+      status.className = 'cek-status' + (kind ? ' ' + kind : '');
+      submit.disabled = blocked;
+    }
+    input.addEventListener('input', function () {
+      var value = input.value.trim();
+      sequence += 1;
+      var current = sequence;
+      window.clearTimeout(timer);
+      if (request) request.abort();
+      if (!value || value.toLowerCase() === original) {
+        show('', '', false);
+        return;
+      }
+      if (value.length > 25) {
+        show('Username maksimal 25 karakter.', 'error', true);
+        return;
+      }
+      show('Memeriksa...', 'checking', true);
+      timer = window.setTimeout(function () {
+        request = new AbortController();
+        var params = new URLSearchParams({ field: 'username', value: value, except_id: input.getAttribute('data-cek-except') || '0' });
+        fetch('cek_ketersediaan.php?' + params.toString(), { signal: request.signal, credentials: 'same-origin' })
+          .then(function (response) {
+            if (!response.ok) throw new Error('Gagal memeriksa');
+            return response.json();
+          })
+          .then(function (result) {
+            if (current !== sequence) return;
+            show(result.message, result.available ? 'success' : 'error', !result.available);
+          })
+          .catch(function (error) {
+            if (current !== sequence || error.name === 'AbortError') return;
+            show('Tidak dapat memeriksa sekarang. Username akan dicek saat disimpan.', 'warning', false);
+          });
+      }, 400);
+    });
+    form.addEventListener('submit', function (event) {
+      if (submit.disabled) event.preventDefault();
+    });
+  });
+
   /* ---------- Detail transaksi: ubah status (Admin) ---------- */
   var statusSelect = $('#status-select');
   if (statusSelect) {
@@ -258,5 +311,58 @@
     });
 
     render();
+  }
+  /* ---------- Profil: pratinjau & validasi foto ---------- */
+  var photoInput = $('#photo-input');
+  if (photoInput) {
+    var photoDrop = $('#photo-drop');
+    var photoPreview = $('#photo-preview');
+    var photoName = $('#photo-name');
+    var photoError = $('#photo-error');
+    var photoSubmit = $('#photo-submit');
+    var maxBytes = Number(photoInput.getAttribute('data-max'));
+    var allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    var previewUrl = null;
+
+    var photoMessage = function (message) {
+      photoError.textContent = message;
+      photoError.classList.toggle('is-hidden', !message);
+    };
+
+    var handlePhoto = function () {
+      var file = photoInput.files && photoInput.files[0];
+      if (previewUrl) { URL.revokeObjectURL(previewUrl); previewUrl = null; }
+      photoSubmit.disabled = true;
+      photoName.classList.remove('chosen');
+      if (!file) { photoName.textContent = 'Belum ada file dipilih'; photoMessage(''); return; }
+
+      photoName.textContent = file.name + ' (' + (file.size / 1024 / 1024).toFixed(2) + ' MB)';
+      if (allowed.indexOf(file.type) === -1) { photoMessage('Format foto harus JPG, PNG, atau WebP.'); return; }
+      if (file.size > maxBytes) { photoMessage('Ukuran foto maksimal 2 MB.'); return; }
+
+      photoMessage('');
+      photoName.classList.add('chosen');
+      previewUrl = URL.createObjectURL(file);
+      var img = document.createElement('img');
+      img.src = previewUrl;
+      img.alt = '';
+      photoPreview.innerHTML = '';
+      photoPreview.appendChild(img);
+      photoSubmit.disabled = false;
+    };
+    photoInput.addEventListener('change', handlePhoto);
+
+    ['dragenter', 'dragover'].forEach(function (type) {
+      photoDrop.addEventListener(type, function (event) { event.preventDefault(); photoDrop.classList.add('is-dragover'); });
+    });
+    ['dragleave', 'drop'].forEach(function (type) {
+      photoDrop.addEventListener(type, function (event) { event.preventDefault(); photoDrop.classList.remove('is-dragover'); });
+    });
+    photoDrop.addEventListener('drop', function (event) {
+      if (!event.dataTransfer || !event.dataTransfer.files.length) return;
+      photoInput.files = event.dataTransfer.files;
+      handlePhoto();
+    });
+    $('#photo-form').addEventListener('submit', function () { photoSubmit.disabled = true; photoSubmit.textContent = 'Menyimpan...'; });
   }
 })();

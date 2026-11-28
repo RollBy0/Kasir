@@ -27,7 +27,7 @@ echo permission_bar(ACCESS['Admin']['petugas'], 'Modul ini tidak tersedia untuk 
             <td class="muted">#<?= (int) $row['UserID'] ?></td>
             <td>
               <div class="person-cell">
-                <span class="avatar small"><?= e(initials($row['NamaUser'])) ?></span>
+                <?= avatar_html($row, 'small') ?>
                 <strong><?= e($row['NamaUser']) ?></strong>
                 <?php if ($isSelf): ?><span class="tag">Anda</span><?php endif; ?>
               </div>
@@ -79,7 +79,8 @@ echo permission_bar(ACCESS['Admin']['petugas'], 'Modul ini tidak tersedia untuk 
           </label>
           <label class="field">
             <span>Username</span>
-            <input type="text" name="username" maxlength="25" value="<?= e($form['username']) ?>" required="required" />
+            <input type="text" name="username" maxlength="25" value="<?= e($form['username']) ?>" data-cek-unik="username" data-cek-except="<?= (int) $form['UserID'] ?>" data-cek-original="<?= e($originalUsername) ?>" required="required" />
+            <small class="cek-status" aria-live="polite"></small>
           </label>
           <label class="field">
             <span>Password</span>
