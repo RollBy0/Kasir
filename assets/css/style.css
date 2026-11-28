@@ -12,7 +12,6 @@ img { max-width: 100%; }
 table { border-collapse: collapse; }
 .is-hidden { display: none !important; }
 
-/* Palet warna: ubah variabel di sini untuk menyesuaikan dengan desain Figma. */
 :root {
   /* Warna utama */
   --black: #000000;
@@ -116,7 +115,7 @@ header { height: 76px; position: sticky; top: 0; z-index: 20; display: flex; ali
 .breadcrumb { display: flex; align-items: center; gap: 8px; color: var(--text-subtle); font-size: 13px; }
 .breadcrumb strong { color: var(--text); font-weight: 600; }
 .header-actions { display: flex; align-items: center; gap: 16px; margin-left: auto; }
-/* Navbar sesuai frame Figma */
+
 .nav-role { min-width: 118px; height: 32px; display: inline-flex; align-items: center; justify-content: center; padding: 0 18px; border-radius: 999px; color: #fff; font-weight: 700; font-size: 13px; letter-spacing: .52px; line-height: normal; box-shadow: -3px 2px 1px rgba(0,0,0,.25); }
 .nav-role.admin { background: var(--orange); }
 .nav-role.petugas { background: var(--primary); }
@@ -200,7 +199,6 @@ tfoot td { border-top: 1px solid var(--border); border-bottom: 0; color: var(--t
 .stock-badge.empty { color: var(--danger); background: var(--danger-soft); }
 
 /* ---------- Dashboard ---------- */
-/* Kartu ringkasan sesuai frame Figma "Summary" */
 .stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 20px 18px; margin-bottom: 20px; }
 .stat-card { min-width: 0; display: flex; align-items: center; gap: 6px; }
 .stat-icon { width: 90px; height: 102px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 15px; background: var(--white); }
